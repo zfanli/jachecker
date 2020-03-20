@@ -4,9 +4,15 @@ from pypeg2 import blank
 from parser.java_parser.tokens import *
 
 
+class LineNo(int):
+
+    grammar = '[', re.compile(r'\d+'), ']'
+
+
 class Imported(List):
 
-    grammar = 'import', blank, some(word, '.'), name(), ';'
+    grammar = attr('lineno', LineNo), 'import', blank, \
+        some(word, '.'), name(), ';'
 
     def __str__(self):
         return 'import ' + '.'.join(self) + '.' + self.name + ';'

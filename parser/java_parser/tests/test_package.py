@@ -57,7 +57,7 @@ class TestPackage(unittest.TestCase):
             'lineno': 1
         }
         parsed = parse(test, Package)
-        self.assertEqual(json.dumps(parsed.json()),
+        self.assertEqual(json.dumps(parsed.object()),
                          json.dumps(expected), 'To json not works.')
 
     def test_full_name(self):

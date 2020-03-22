@@ -3,7 +3,7 @@ Deal with import and package keywords in Java.
 '''
 
 from pypeg2 import *
-from pypeg2 import blank
+from pypeg2 import blank, endl
 
 # name allows start (*)
 name_star = re.compile(r'\*|\w+')
@@ -24,7 +24,9 @@ class PathNameMixin:
 class JsonMixin:
     '''Json output'''
 
-    def json(self):
+    def object(self):
+        '''Make object for json output'''
+
         return {
             'name': self.name,
             'type': self.keyword,
@@ -56,6 +58,12 @@ class Import(str, PathNameMixin, JsonMixin):
 
     keyword = 'import'
     grammar = create_grammar(keyword, name_star)
+
+
+class Imports(List):
+    '''Import may always be a list'''
+
+    grammar = some(Import)
 
 
 class Package(str, PathNameMixin, JsonMixin):

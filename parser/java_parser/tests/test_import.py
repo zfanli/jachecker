@@ -11,7 +11,7 @@ from pypeg2 import *
 from pypeg2 import endl
 
 # Test target
-from parser.java_parser.import_package import Import
+from parser.java_parser.import_package import Import, Imports
 
 
 class TestImport(unittest.TestCase):
@@ -57,7 +57,7 @@ class TestImport(unittest.TestCase):
             {import_list[3]}
             {import_list[4]}
         '''
-        parsed = parse(test, some(Import, endl))
+        parsed = parse(test, Imports)
         self.assertEqual(
             import_list,
             [compose(x)for x in parsed],
@@ -90,7 +90,7 @@ class TestImport(unittest.TestCase):
             'lineno': 1
         }
         parsed = parse(test, Import)
-        self.assertEqual(json.dumps(parsed.json()),
+        self.assertEqual(json.dumps(parsed.object()),
                          json.dumps(expected), 'To json not works.')
 
     def test_full_name(self):

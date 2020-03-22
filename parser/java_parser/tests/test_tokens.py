@@ -15,7 +15,7 @@ from parser.java_parser.tokens import *
 
 class TestAccessModifiers(unittest.TestCase):
 
-    def test_case1(self):
+    def test_case_am1(self):
         '''Check all keywords'''
 
         test = ['default', 'public', 'protected', 'private']
@@ -25,7 +25,7 @@ class TestAccessModifiers(unittest.TestCase):
 
 class TestNonAccessModifiers(unittest.TestCase):
 
-    def test_case1(self):
+    def test_case_nam1(self):
         '''Check all keywords'''
 
         test = ['final', 'static', 'transient', 'synchronized', 'volatile']
@@ -33,80 +33,263 @@ class TestNonAccessModifiers(unittest.TestCase):
         self.assertEqual(parsed, test, 'Non-Access modifiers are not ok.')
 
 
+class TestModifiers(unittest.TestCase):
+
+    def test_case_m1(self):
+        '''Simple case'''
+
+        test = ['public', 'static']
+        parsed = parse(' '.join(test), some(Modifier))
+        self.assertEqual(parsed, test, 'Modifiers are not ok.')
+
+
+class TestLiterals(unittest.TestCase):
+
+    def test_case_literal1(self):
+        '''String literal'''
+
+        test = '"This is a String literal"'
+        parsed = parse(test, LiteralString)
+        self.assertEqual(parsed, test, 'Not matched.')
+
+    def test_case_literal2(self):
+        '''String literal'''
+
+        test = '""'
+        parsed = parse(test, LiteralString)
+        self.assertEqual(parsed, test, 'Empty is not matched.')
+
+    def test_case_literal3(self):
+        '''String literal'''
+
+        test = '"1 + 1"'
+        parsed = parse(test, LiteralString)
+        self.assertEqual(parsed.object(), test[1:-1], 'Not matched.')
+
+    def test_case_literal4(self):
+        '''String literal'''
+
+        test = '"some escaped quotes like \"\"\"\""'
+        parsed = parse(test, LiteralString)
+        self.assertEqual(parsed, test, 'Escaped quotes are not ok.')
+
+    def test_case_literal5(self):
+        '''String literal'''
+
+        test = '"Special symbols: +-*/[]~!#$%^&()_`<>\t\n\n\n\n"'
+        parsed = parse(test, LiteralString)
+        self.assertEqual(parsed, test, 'Multiple line is not ok.')
+
+    def test_case_literal6(self):
+        '''Char literal'''
+
+        expected = 'A'
+        test = f"'{expected}'"
+        parsed = parse(test, LiteralChar)
+        self.assertEqual(parsed, expected, 'Not matched.')
+
+    def test_case_literal7(self):
+        '''Number literal'''
+
+        expected = 1234567
+        test = f'{expected}'
+        parsed = parse(test, LiteralNumber)
+        self.assertEqual(parsed.object(), expected, 'Not matched.')
+
+    def test_case_literal8(self):
+        '''Float literal'''
+
+        expected = 123.14124
+        test = f'{expected}f'
+        parsed = parse(test, LiteralFloat)
+        self.assertEqual(parsed.object(), expected, 'Not matched.')
+
+    def test_case_literal9(self):
+        '''Float literal'''
+
+        expected = 123.14124
+        test = f'{expected}F'
+        parsed = parse(test, LiteralFloat)
+        self.assertEqual(parsed.object(), expected, 'Not matched.')
+
+    def test_case_literal10(self):
+        '''Long literal'''
+
+        expected = 1234567890
+        test = f'{expected}l'
+        parsed = parse(test, LiteralLong)
+        self.assertEqual(parsed.object(), expected, 'Not matched.')
+
+    def test_case_literal11(self):
+        '''Long literal'''
+
+        expected = 1234567890
+        test = f'{expected}L'
+        parsed = parse(test, LiteralLong)
+        self.assertEqual(parsed.object(), expected, 'Not matched.')
+
+    def test_case_literal12(self):
+        '''Double literal'''
+
+        expected = 12345.6789
+        test = f'{expected}'
+        parsed = parse(test, LiteralDouble)
+        self.assertEqual(parsed.object(), expected, 'Not matched.')
+
+    def test_case_literal13(self):
+        '''Double literal'''
+
+        expected = 12345.6789
+        test = f'{expected}d'
+        parsed = parse(test, LiteralDouble)
+        self.assertEqual(parsed.object(), expected, 'Not matched.')
+
+    def test_case_literal14(self):
+        '''Double literal'''
+
+        expected = 12345.6789
+        test = f'{expected}D'
+        parsed = parse(test, LiteralDouble)
+        self.assertEqual(parsed.object(), expected, 'Not matched.')
+
+    def test_case_literal15(self):
+        '''Double literal'''
+
+        test = 'true'
+        parsed = parse(test, LiteralBoolean)
+        self.assertTrue(parsed.object(), 'Not matched.')
+
+    def test_case_literal16(self):
+        '''Double literal'''
+
+        test = 'false'
+        parsed = parse(test, LiteralBoolean)
+        self.assertFalse(parsed.object(), 'Not matched.')
+
+
 class TestParameterType(unittest.TestCase):
 
-    def test_case1(self):
+    def test_case_pt1(self):
         '''Simple parameter'''
 
         test = 'String'
         parsed = parse(test, ParameterType)
-        self.assertEqual(parsed, test, 'Not matched.')
+        self.assertEqual(parsed.name, test, 'Not matched.')
 
-    def test_case2(self):
+    def test_case_pt2(self):
         '''Array'''
 
         test = 'int[]'
         parsed = parse(test, ParameterType)
-        self.assertEqual(parsed, 'int', 'Not matched.')
+        self.assertEqual(parsed.name, 'int', 'Not matched.')
         self.assertEqual(parsed.array_suffix, '[]', 'Should be an array.')
 
-    def test_case3(self):
+    def test_case_pt3(self):
         '''Generic'''
 
         test = 'List<String>'
         parsed = parse(test, ParameterType)
-        self.assertEqual(parsed, 'List', 'Not matched.')
-        self.assertEqual(parsed.generic, ['String'],
+        self.assertEqual(parsed.name, 'List', 'Not matched.')
+        self.assertEqual([x.name for x in parsed.generic], ['String'],
                          'Generic should be `[String]`.')
 
-    def test_case4(self):
+    def test_case_pt4(self):
         '''Complicated case'''
 
         test = 'ArrayList<LinkedHashMap<String[], Object>>'
         parsed = parse(test, ParameterType)
-        self.assertEqual(parsed, 'ArrayList', 'Not matched.')
-        self.assertEqual(parsed.generic, ['LinkedHashMap'],
+        self.assertEqual(parsed.name, 'ArrayList', 'Not matched.')
+        self.assertEqual([x.name for x in parsed.generic], ['LinkedHashMap'],
                          'Generic should be `[LinkedHashMap]`.')
-        self.assertEqual(parsed.generic[0].generic, ['String', 'Object'],
-                         'Generic should be `[String, Object]`.')
+        self.assertEqual([x.name for x in parsed.generic[0].generic],
+                         ['String', 'Object'], 'Generic should be `[String, Object]`.')
         self.assertEqual(parsed.generic[0].generic[0].array_suffix, '[]',
                          'Should be an array.')
 
-    def test_case5(self):
+    def test_case_pt5(self):
         '''Another complicated case'''
 
         test = 'LinkedHashMap<String[], Object>[]'
         parsed = parse(test, ParameterType)
-        self.assertEqual(parsed, 'LinkedHashMap', 'Not matched.')
+        self.assertEqual(parsed.name, 'LinkedHashMap', 'Not matched.')
         self.assertEqual(parsed.array_suffix, '[]', 'Should be an array.')
-        self.assertEqual(parsed.generic, ['String', 'Object'],
+        self.assertEqual([x.name for x in parsed.generic], ['String', 'Object'],
                          'Should be `[String, Object]`.')
         self.assertEqual(parsed.generic[0].array_suffix,
                          '[]', 'Should be an array.')
 
-    def test_case6(self):
+    def test_case_pt6(self):
         '''More dimensions of arrays'''
 
         test = 'String[][][]'
         parsed = parse(test, ParameterType)
         self.assertEqual(parsed.array_suffix, '[][][]', 'Not matched.')
 
-    def test_case7(self):
+    def test_case_pt7(self):
         '''Recurision case, till 3 of the depth, enough for most case.'''
 
         test = 'ArrayList<LinkedHashMap<String[], HashMap<String, T<Object>>>>'
         parsed = parse(test, ParameterType)
-        self.assertEqual(parsed, 'ArrayList', 'Not matched.')
-        self.assertEqual(parsed.generic, ['LinkedHashMap'],
+        self.assertEqual(parsed.name, 'ArrayList', 'Not matched.')
+        self.assertEqual([x.name for x in parsed.generic], ['LinkedHashMap'],
                          'Generic should be `[LinkedHashMap]`.')
-        self.assertEqual(parsed.generic[0].generic, ['String', 'HashMap'],
+        self.assertEqual([x.name for x in parsed.generic[0].generic], ['String', 'HashMap'],
                          'Generic should be `[String, HashMap]`.')
         self.assertEqual(parsed.generic[0].generic[0].array_suffix, '[]',
                          'Should be an array.')
-        self.assertEqual(parsed.generic[0].generic[1].generic, ['String', 'T'],
+        self.assertEqual([x.name for x in parsed.generic[0].generic[1].generic], ['String', 'T'],
                          'Generic should be `[String, T]`.')
-        self.assertEqual(parsed.generic[0].generic[1].generic[1].generic, ['Object'],
+        self.assertEqual([x.name for x in parsed.generic[0].generic[1].generic[1].generic], ['Object'],
                          'Generic should be `[Object]`.')
+
+    def test_case_pt8(self):
+        '''Test stringify'''
+
+        test = 'LinkedHashMap<String[], Object>[]'
+        expected = {
+            'name': 'LinkedHashMap',
+            'generic': [
+                {'name': 'String', 'generic': None, 'array_suffix': '[]'},
+                {'name': 'Object', 'generic': None, 'array_suffix': None}
+            ],
+            'array_suffix': '[]'
+        }
+        parsed = parse(test, ParameterType)
+        self.assertEqual(str(parsed), json.dumps(expected), 'Not matched.')
+
+
+class TestParameters(unittest.TestCase):
+
+    def test_case_p1(self):
+        '''Parameter only'''
+
+        test = 'String name'
+        expected = {
+            'name': 'name',
+            'type': {'name': 'String', 'generic': None, 'array_suffix': None}
+        }
+        parsed = parse(test, Parameter)
+        self.assertEqual(str(parsed), json.dumps(expected), 'Not matched.')
+
+    def test_case_ps1(self):
+        '''Simple case'''
+
+        test = 'String name, int age, Info info, String[] other'
+        expected = [{
+            "name": "name",
+            "type": {"name": "String", "generic": None, "array_suffix": None}
+        }, {
+            "name": "age",
+            "type": {"name": "int", "generic": None, "array_suffix": None}
+        }, {
+            "name": "info",
+            "type": {"name": "Info", "generic": None, "array_suffix": None}
+        }, {
+            "name": "other",
+            "type": {"name": "String", "generic": None, "array_suffix": "[]"}
+        }]
+        parsed = parse(test, Parameters)
+        self.assertEqual(str(parsed), json.dumps(expected), 'Not matched.')
 
 
 if __name__ == '__main__':

@@ -9,7 +9,7 @@ from pypeg2 import *
 from parser.java_parser.mixins import Stringify, Literal
 
 
-param_type = re.compile(r'([\w\d]+)')
+common_name = re.compile(r'([\w\d]+)')
 array_symbols = re.compile(r'(\[\])+')
 
 
@@ -50,7 +50,10 @@ class LiteralString(str, Literal):
 
 class LiteralChar(str, Literal):
 
-    grammar = "'", re.compile(r'\w'), "'"
+    grammar = re.compile(r"^'\w'$")
+
+    def object(self):
+        return self[1:-1]
 
 
 class LiteralNumber(int, Literal):
@@ -91,6 +94,17 @@ class LiteralBoolean(str, Stringify):
         return True if self == 'true' else False
 
 
+class PrimaryType(Stringify):
+
+    grammar = attr('value', [
+        LiteralString, LiteralChar, LiteralNumber, LiteralLong,
+        LiteralFloat, LiteralDouble, LiteralBoolean
+    ])
+
+    def object(self):
+        return self.value.object()
+
+
 def generic_type_limited_recursion(num):
 
     if num > 0:
@@ -101,7 +115,7 @@ def generic_type_limited_recursion(num):
     class GenericRecursion(Stringify):
 
         grammar = (
-            attr('name', param_type),
+            attr('name', common_name),
             attr('generic', optional('<',  csl(g), '>')),
             attr('array_suffix', optional(array_symbols))
         )
@@ -160,31 +174,64 @@ class Parameters(List, Stringify):
         return [x.object() for x in self]
 
 
-class AnnotationParameters(Stringify):
+class AnnotationKeyValuePair(Stringify):
+    '''Output: `json`
+        {
+            "key": str,
+            "value": str,
+        }
+    '''
+
+    grammar = attr('key', common_name), '=', attr(
+        'value', [common_name, PrimaryType])
+
+    def object(self):
+        return {
+            'key': self.key,
+            'value': self.value.object() if type(self.value) == PrimaryType else self.value
+        }
+
+
+class AnnotationParameters(List, Stringify):
+    '''Parameters of annotation, see details as shown below
+
+    Output: `json`
+        [str | PrimaryType | {"key": str, "value": any}]
+    '''
+
+    grammar = csl([
+        common_name,
+        PrimaryType,
+        AnnotationKeyValuePair,
+        re.compile(r'[\w\d]+\.[\w\d]+'),
+    ])
+
+    def object(self):
+        return [
+            x.object() if type(x) in (AnnotationKeyValuePair, PrimaryType) else x
+            for x in self
+        ]
+
+
+class Annotation(Stringify):
     '''Parameters of annotation maybe formatted as shown below.
 
-        - @Annotation("value")
-        - @Annotation(variable)
-        - @Annotation(Object.attribute)
-        - @Annotation(Object.attribute)
-        - @Annotation(key = value)
+        - @Annotation(variable[, another])
+        - @Annotation("value"[, "another"])
+        - @Annotation(Object.attribute[, Object.another])
+        - @Annotation(key = value[, anotherKey = anotherValue])
 
     Output: `json`
         {
             "name": str,
-            "value": ?str,
+            "parameters": ?[str],
         }
     '''
 
-    grammar = ''
+    grammar = '@', name(), attr('parameters', optional('(', AnnotationParameters, ')'))
 
-
-class Annotation(Stringify):
-    '''Output: `json`
-        {
-            'name': str,
-            'value': ?str,
+    def object(self):
+        return {
+            'name': self.name,
+            'parameters': self.parameters.object() if type(self.parameters) == AnnotationParameters else None,
         }
-    '''
-
-    grammar = '@', name(), '(', ')'

@@ -93,7 +93,7 @@ class TestLiterals(unittest.TestCase):
         expected = 'A'
         test = f"'{expected}'"
         parsed = parse(test, LiteralChar)
-        self.assertEqual(parsed, expected, 'Not matched.')
+        self.assertEqual(parsed.object(), expected, 'Not matched.')
 
     def test_case_literal7(self):
         '''Number literal'''
@@ -172,6 +172,57 @@ class TestLiterals(unittest.TestCase):
         test = 'false'
         parsed = parse(test, LiteralBoolean)
         self.assertFalse(parsed.object(), 'Not matched.')
+
+
+class TestPrimaryType(unittest.TestCase):
+
+    def test_case_pri1(self):
+        '''Primary types'''
+
+        expected = 'String'
+        test = f'"{expected}"'
+        parsed = parse(test, PrimaryType)
+        self.assertEqual(parsed.object(), expected, 'Not matched')
+
+    def test_case_pri2(self):
+        '''Primary types'''
+
+        expected = 'Z'
+        test = f"'{expected}'"
+        parsed = parse(test, PrimaryType)
+        self.assertEqual(parsed.object(), expected, 'Not matched')
+
+    def test_case_pri3(self):
+        '''Primary types'''
+
+        expected = 1234
+        test = f'{expected}'
+        parsed = parse(test, PrimaryType)
+        self.assertEqual(parsed.object(), expected, 'Not matched')
+
+    def test_case_pri4(self):
+        '''Primary types'''
+
+        expected = 1234
+        test = f'{expected}l'
+        parsed = parse(test, PrimaryType)
+        self.assertEqual(parsed.object(), expected, 'Not matched')
+
+    def test_case_pri5(self):
+        '''Primary types'''
+
+        expected = 1234
+        test = f'{expected}f'
+        parsed = parse(test, PrimaryType)
+        self.assertEqual(parsed.object(), expected, 'Not matched')
+
+    def test_case_pri6(self):
+        '''Primary types'''
+
+        expected = 1234.124
+        test = f'{expected}'
+        parsed = parse(test, PrimaryType)
+        self.assertEqual(parsed.object(), expected, 'Not matched')
 
 
 class TestParameterType(unittest.TestCase):
@@ -297,6 +348,27 @@ class TestParameters(unittest.TestCase):
         }]
         parsed = parse(test, Parameters)
         self.assertEqual(str(parsed), json.dumps(expected), 'Not matched.')
+
+
+class TestAnnotation(unittest.TestCase):
+
+    def test_case_an1(self):
+        '''Annotation'''
+
+        test = '@Annotation'
+        expected = {'name': 'Annotation', 'parameters': None}
+        parsed = parse(test, Annotation)
+        self.assertEqual(str(parsed), json.dumps(expected),
+                         'Not parsed correctly.')
+
+    def test_case_an2(self):
+        '''Annotation'''
+
+        test = '@Annotation("SomeValues")'
+        expected = {'name': 'Annotation', 'parameters': ['SomeValues']}
+        parsed = parse(test, Annotation)
+        self.assertEqual(str(parsed), json.dumps(expected),
+                         'Not parsed correctly.')
 
 
 if __name__ == '__main__':

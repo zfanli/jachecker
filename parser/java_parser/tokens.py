@@ -34,7 +34,7 @@ class NonAccessModifier(Keyword):
     )
 
 
-class Modifier(Literal):
+class Modifier(str, Literal):
     '''All modifiers'''
 
     grammar = [AccessModifier, NonAccessModifier]

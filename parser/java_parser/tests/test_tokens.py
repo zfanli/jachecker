@@ -42,6 +42,13 @@ class TestModifiers(unittest.TestCase):
         parsed = parse(' '.join(test), some(Modifier))
         self.assertEqual(parsed, test, 'Modifiers are not ok.')
 
+    def test_case_m2(self):
+        '''Object()'''
+
+        test = 'final'
+        parsed = parse(test, Modifier)
+        self.assertEqual(parsed.object(), test, 'Modifiers are not ok.')
+
 
 class TestLiterals(unittest.TestCase):
 

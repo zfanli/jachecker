@@ -181,7 +181,7 @@ class TestPrimaryType(unittest.TestCase):
 
         expected = 'String'
         test = f'"{expected}"'
-        parsed = parse(test, PrimaryType)
+        parsed = parse(test, primary_type)
         self.assertEqual(parsed.object(), expected, 'Not matched')
 
     def test_case_pri2(self):
@@ -189,7 +189,7 @@ class TestPrimaryType(unittest.TestCase):
 
         expected = 'Z'
         test = f"'{expected}'"
-        parsed = parse(test, PrimaryType)
+        parsed = parse(test, primary_type)
         self.assertEqual(parsed.object(), expected, 'Not matched')
 
     def test_case_pri3(self):
@@ -197,7 +197,7 @@ class TestPrimaryType(unittest.TestCase):
 
         expected = 1234
         test = f'{expected}'
-        parsed = parse(test, PrimaryType)
+        parsed = parse(test, primary_type)
         self.assertEqual(parsed.object(), expected, 'Not matched')
 
     def test_case_pri4(self):
@@ -205,23 +205,47 @@ class TestPrimaryType(unittest.TestCase):
 
         expected = 1234
         test = f'{expected}l'
-        parsed = parse(test, PrimaryType)
+        parsed = parse(test, primary_type)
         self.assertEqual(parsed.object(), expected, 'Not matched')
 
     def test_case_pri5(self):
         '''Primary types'''
 
-        expected = 1234
-        test = f'{expected}f'
-        parsed = parse(test, PrimaryType)
+        expected = 1234.13
+        test = f'{expected}F'
+        parsed = parse(test, primary_type)
         self.assertEqual(parsed.object(), expected, 'Not matched')
 
     def test_case_pri6(self):
         '''Primary types'''
 
         expected = 1234.124
+        test = f'{expected}f'
+        parsed = parse(test, primary_type)
+        self.assertEqual(parsed.object(), expected, 'Not matched')
+
+    def test_case_pri7(self):
+        '''Primary types'''
+
+        expected = 1234.124
+        test = f'{expected}d'
+        parsed = parse(test, primary_type)
+        self.assertEqual(parsed.object(), expected, 'Not matched')
+
+    def test_case_pri8(self):
+        '''Primary types'''
+
+        expected = 1234.124
+        test = f'{expected}D'
+        parsed = parse(test, primary_type)
+        self.assertEqual(parsed.object(), expected, 'Not matched')
+
+    def test_case_pri9(self):
+        '''Primary types'''
+
+        expected = 1234.124
         test = f'{expected}'
-        parsed = parse(test, PrimaryType)
+        parsed = parse(test, primary_type)
         self.assertEqual(parsed.object(), expected, 'Not matched')
 
 

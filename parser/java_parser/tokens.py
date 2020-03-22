@@ -10,6 +10,7 @@ from parser.java_parser.mixins import Stringify, Literal
 
 
 common_name = re.compile(r'([\w\d]+)')
+common_with_attribute = re.compile(r'[\w\d]+\.[\w\d]+')
 array_symbols = re.compile(r'(\[\])+')
 
 
@@ -94,15 +95,8 @@ class LiteralBoolean(str, Stringify):
         return True if self == 'true' else False
 
 
-class PrimaryType(Stringify):
-
-    grammar = attr('value', [
-        LiteralString, LiteralChar, LiteralNumber, LiteralLong,
-        LiteralFloat, LiteralDouble, LiteralBoolean
-    ])
-
-    def object(self):
-        return self.value.object()
+primary_type = [LiteralFloat, LiteralDouble, LiteralLong, LiteralNumber,
+                LiteralString, LiteralChar,  LiteralBoolean]
 
 
 def generic_type_limited_recursion(num):
@@ -183,12 +177,12 @@ class AnnotationKeyValuePair(Stringify):
     '''
 
     grammar = attr('key', common_name), '=', attr(
-        'value', [common_name, PrimaryType])
+        'value', [common_name, primary_type])
 
     def object(self):
         return {
             'key': self.key,
-            'value': self.value.object() if type(self.value) == PrimaryType else self.value
+            'value': self.value.object() if type(self.value) != str else self.value
         }
 
 
@@ -200,15 +194,15 @@ class AnnotationParameters(List, Stringify):
     '''
 
     grammar = csl([
-        common_name,
-        PrimaryType,
         AnnotationKeyValuePair,
-        re.compile(r'[\w\d]+\.[\w\d]+'),
+        common_name,
+        common_with_attribute,
+        primary_type,
     ])
 
     def object(self):
         return [
-            x.object() if type(x) in (AnnotationKeyValuePair, PrimaryType) else x
+            x.object() if type(x) != str else x
             for x in self
         ]
 
@@ -233,5 +227,5 @@ class Annotation(Stringify):
     def object(self):
         return {
             'name': self.name,
-            'parameters': self.parameters.object() if type(self.parameters) == AnnotationParameters else None,
+            'parameters': self.parameters.object() if self.parameters is not None else None,
         }

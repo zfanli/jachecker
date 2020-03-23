@@ -38,16 +38,22 @@ class TestModifiers(unittest.TestCase):
     def test_case_m1(self):
         '''Simple case'''
 
+        expected = [
+            {'name': 'public', 'type': 'ACCESS_MODIFIER'},
+            {'name': 'static', 'type': 'NON_ACCESS_MODIFIER'}
+        ]
         test = ['public', 'static']
         parsed = parse(' '.join(test), some(Modifier))
-        self.assertEqual(parsed, test, 'Modifiers are not ok.')
+        self.assertEqual([x.object() for x in parsed],
+                         expected, 'Modifiers are not ok.')
 
     def test_case_m2(self):
         '''Object()'''
 
+        expected = {'name': 'final', 'type': 'NON_ACCESS_MODIFIER'}
         test = 'final'
         parsed = parse(test, Modifier)
-        self.assertEqual(parsed.object(), test, 'Modifiers are not ok.')
+        self.assertEqual(parsed.object(), expected, 'Modifiers are not ok.')
 
 
 class TestLiterals(unittest.TestCase):
@@ -76,9 +82,11 @@ class TestLiterals(unittest.TestCase):
     def test_case_literal4(self):
         '''String literal'''
 
-        test = '"some escaped quotes like \"\"\"\""'
-        parsed = parse(test, LiteralString)
-        self.assertEqual(parsed, test, 'Escaped quotes are not ok.')
+        expected = 'some escaped quotes like \\"\\"\\"\\"'
+        test = expected.replace('\\"', 'JC_ESCAPED_QUOTE')
+        parsed = parse(f'"{test}"', LiteralString)
+        self.assertEqual(parsed.object(), expected,
+                         'Escaped quotes are not ok.')
 
     def test_case_literal5(self):
         '''String literal'''
@@ -181,7 +189,7 @@ class TestPrimaryType(unittest.TestCase):
 
         expected = 'String'
         test = f'"{expected}"'
-        parsed = parse(test, primary_type)
+        parsed = parse(test, PrimaryType)
         self.assertEqual(parsed.object(), expected, 'Not matched')
 
     def test_case_pri2(self):
@@ -189,7 +197,7 @@ class TestPrimaryType(unittest.TestCase):
 
         expected = 'Z'
         test = f"'{expected}'"
-        parsed = parse(test, primary_type)
+        parsed = parse(test, PrimaryType)
         self.assertEqual(parsed.object(), expected, 'Not matched')
 
     def test_case_pri3(self):
@@ -197,7 +205,7 @@ class TestPrimaryType(unittest.TestCase):
 
         expected = 1234
         test = f'{expected}'
-        parsed = parse(test, primary_type)
+        parsed = parse(test, PrimaryType)
         self.assertEqual(parsed.object(), expected, 'Not matched')
 
     def test_case_pri4(self):
@@ -205,7 +213,7 @@ class TestPrimaryType(unittest.TestCase):
 
         expected = 1234
         test = f'{expected}l'
-        parsed = parse(test, primary_type)
+        parsed = parse(test, PrimaryType)
         self.assertEqual(parsed.object(), expected, 'Not matched')
 
     def test_case_pri5(self):
@@ -213,7 +221,7 @@ class TestPrimaryType(unittest.TestCase):
 
         expected = 1234.13
         test = f'{expected}F'
-        parsed = parse(test, primary_type)
+        parsed = parse(test, PrimaryType)
         self.assertEqual(parsed.object(), expected, 'Not matched')
 
     def test_case_pri6(self):
@@ -221,7 +229,7 @@ class TestPrimaryType(unittest.TestCase):
 
         expected = 1234.124
         test = f'{expected}f'
-        parsed = parse(test, primary_type)
+        parsed = parse(test, PrimaryType)
         self.assertEqual(parsed.object(), expected, 'Not matched')
 
     def test_case_pri7(self):
@@ -229,7 +237,7 @@ class TestPrimaryType(unittest.TestCase):
 
         expected = 1234.124
         test = f'{expected}d'
-        parsed = parse(test, primary_type)
+        parsed = parse(test, PrimaryType)
         self.assertEqual(parsed.object(), expected, 'Not matched')
 
     def test_case_pri8(self):
@@ -237,7 +245,7 @@ class TestPrimaryType(unittest.TestCase):
 
         expected = 1234.124
         test = f'{expected}D'
-        parsed = parse(test, primary_type)
+        parsed = parse(test, PrimaryType)
         self.assertEqual(parsed.object(), expected, 'Not matched')
 
     def test_case_pri9(self):
@@ -245,7 +253,7 @@ class TestPrimaryType(unittest.TestCase):
 
         expected = 1234.124
         test = f'{expected}'
-        parsed = parse(test, primary_type)
+        parsed = parse(test, PrimaryType)
         self.assertEqual(parsed.object(), expected, 'Not matched')
 
 
@@ -372,27 +380,6 @@ class TestParameters(unittest.TestCase):
         }]
         parsed = parse(test, Parameters)
         self.assertEqual(str(parsed), json.dumps(expected), 'Not matched.')
-
-
-class TestAnnotation(unittest.TestCase):
-
-    def test_case_an1(self):
-        '''Annotation'''
-
-        test = '@Annotation'
-        expected = {'name': 'Annotation', 'parameters': None}
-        parsed = parse(test, Annotation)
-        self.assertEqual(str(parsed), json.dumps(expected),
-                         'Not parsed correctly.')
-
-    def test_case_an2(self):
-        '''Annotation'''
-
-        test = '@Annotation("SomeValues")'
-        expected = {'name': 'Annotation', 'parameters': ['SomeValues']}
-        parsed = parse(test, Annotation)
-        self.assertEqual(str(parsed), json.dumps(expected),
-                         'Not parsed correctly.')
 
 
 if __name__ == '__main__':

@@ -5,10 +5,10 @@ Deal with import and package keywords in Java.
 from pypeg2 import *
 from pypeg2 import blank, endl
 
+from parser.java_parser.tokens import CommonName
+
 # name allows start (*)
-name_star = re.compile(r'\*|\w+')
-# name only allows word
-name_nostar = word
+name_star = re.compile(r'\*|[\w\d]+')
 
 
 class PathNameMixin:
@@ -29,7 +29,7 @@ class JsonMixin:
 
         return {
             'name': self.name,
-            'type': self.keyword,
+            'type': self.keyword.upper(),
             'path': self.path,
             'lineno': self.position_in_text[0]
         }
@@ -70,7 +70,7 @@ class Package(str, PathNameMixin, JsonMixin):
     '''Java package'''
 
     keyword = 'package'
-    grammar = create_grammar(keyword, name_nostar)
+    grammar = create_grammar(keyword, CommonName)
 
 
 if __name__ == '__main__':

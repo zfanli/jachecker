@@ -9,24 +9,49 @@ from pypeg2 import *
 from parser.java_parser.mixins import Stringify, Literal
 
 
-common_name = re.compile(r'([\w\d]+)')
-common_with_attribute = re.compile(r'[\w\d]+\.[\w\d]+')
-array_symbols = re.compile(r'(\[\])+')
+class CommonName(str, Literal):
+    '''Matches like `AllName`'''
+
+    grammar = re.compile(r'([\w\d]+)')
 
 
-class AccessModifier(Keyword):
-    '''Output: `str`
-        keyword
+class CommonNameAttribute(str, Literal):
+    '''Matches like `Name.attribute`'''
+
+    grammar = re.compile(r'[\w\d]+\.[\w\d]+')
+
+
+class SymbolArray(str, Literal):
+    '''Matches only array suffix like `[]`, or more dimensions'''
+
+    grammar = re.compile(r'(\[\])+')
+
+
+class AccessModifier(Keyword, Stringify):
+    '''Output: `json`
+        {
+            "name": str,
+            "type": "ACCESS_MODIFIER"
+        }
     '''
 
     grammar = Enum(
         K('default'), K('public'), K('protected'), K('private'),
     )
 
+    def object(self):
+        return {
+            'name': self,
+            'type': 'ACCESS_MODIFIER'
+        }
 
-class NonAccessModifier(Keyword):
-    '''Output: `str`
-        keyword
+
+class NonAccessModifier(Keyword, Stringify):
+    '''Output: `json`
+        {
+            "name": str,
+            "type": "NON_ACCESS_MODIFIER"
+        }
     '''
 
     grammar = Enum(
@@ -34,19 +59,38 @@ class NonAccessModifier(Keyword):
         K('synchronized'), K('volatile'),
     )
 
+    def object(self):
+        return {
+            'name': self,
+            'type': 'NON_ACCESS_MODIFIER'
+        }
 
-class Modifier(str, Literal):
-    '''All modifiers'''
 
-    grammar = [AccessModifier, NonAccessModifier]
+class Modifier(Stringify):
+    '''All modifiers
+
+    Output: `json`
+        {
+            "name": str,
+            "type": "ACCESS_MODIFIER" | "NON_ACCESS_MODIFIER"
+        }
+    '''
+
+    grammar = attr('value', [AccessModifier, NonAccessModifier])
+
+    def object(self):
+        return self.value.object()
 
 
 class LiteralString(str, Literal):
 
-    grammar = re.compile(r'^".*"$', re.S)
+    grammar = re.compile(r'^".*?"', re.S)
 
     def object(self):
-        return self[1:-1]
+        result = self[1:-1]
+        # Unescape quotes
+        result = result.replace('JC_ESCAPED_QUOTE', '\\"')
+        return result
 
 
 class LiteralChar(str, Literal):
@@ -95,8 +139,13 @@ class LiteralBoolean(str, Stringify):
         return True if self == 'true' else False
 
 
-primary_type = [LiteralFloat, LiteralDouble, LiteralLong, LiteralNumber,
-                LiteralString, LiteralChar,  LiteralBoolean]
+class PrimaryType(Stringify):
+
+    grammar = attr('value', [LiteralFloat, LiteralDouble, LiteralLong, LiteralNumber,
+                             LiteralString, LiteralChar,  LiteralBoolean])
+
+    def object(self):
+        return self.value.object()
 
 
 def generic_type_limited_recursion(num):
@@ -109,9 +158,9 @@ def generic_type_limited_recursion(num):
     class GenericRecursion(Stringify):
 
         grammar = (
-            attr('name', common_name),
+            attr('name', CommonName),
             attr('generic', optional('<',  csl(g), '>')),
-            attr('array_suffix', optional(array_symbols))
+            attr('array_suffix', optional(SymbolArray))
         )
 
         def object(self):
@@ -141,6 +190,11 @@ class ReturnType(ParameterType):
     pass
 
 
+class VariableType(ParameterType):
+    '''Alias of parameter type'''
+    pass
+
+
 class Parameter(Stringify):
     '''Output: `json`
         {
@@ -166,66 +220,3 @@ class Parameters(List, Stringify):
 
     def object(self):
         return [x.object() for x in self]
-
-
-class AnnotationKeyValuePair(Stringify):
-    '''Output: `json`
-        {
-            "key": str,
-            "value": str,
-        }
-    '''
-
-    grammar = attr('key', common_name), '=', attr(
-        'value', [common_name, primary_type])
-
-    def object(self):
-        return {
-            'key': self.key,
-            'value': self.value.object() if type(self.value) != str else self.value
-        }
-
-
-class AnnotationParameters(List, Stringify):
-    '''Parameters of annotation, see details as shown below
-
-    Output: `json`
-        [str | PrimaryType | {"key": str, "value": any}]
-    '''
-
-    grammar = csl([
-        AnnotationKeyValuePair,
-        common_name,
-        common_with_attribute,
-        primary_type,
-    ])
-
-    def object(self):
-        return [
-            x.object() if type(x) != str else x
-            for x in self
-        ]
-
-
-class Annotation(Stringify):
-    '''Parameters of annotation maybe formatted as shown below.
-
-        - @Annotation(variable[, another])
-        - @Annotation("value"[, "another"])
-        - @Annotation(Object.attribute[, Object.another])
-        - @Annotation(key = value[, anotherKey = anotherValue])
-
-    Output: `json`
-        {
-            "name": str,
-            "parameters": ?[str],
-        }
-    '''
-
-    grammar = '@', name(), attr('parameters', optional('(', AnnotationParameters, ')'))
-
-    def object(self):
-        return {
-            'name': self.name,
-            'parameters': self.parameters.object() if self.parameters is not None else None,
-        }

@@ -52,7 +52,7 @@ class TestPackage(unittest.TestCase):
         test = 'package org.springframework.context.annotation.Bean;'
         expected = {
             'name': 'Bean',
-            'type': 'package',
+            'type': 'package'.upper(),
             'path': ['org', 'springframework', 'context', 'annotation'],
             'lineno': 1
         }

@@ -11,6 +11,9 @@ import org.springframework.context.annotation.Bean;
 @SpringBootApplication
 public class Application {
 
+	private static final String SOME_CONSTANT = "SOME_CONSTANT";
+	private static final int INT_CONSTANT = "123";
+
 	public static void main(String[] args) {
 		SpringApplication.run(Application.class, args);
 	}

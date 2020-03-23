@@ -85,7 +85,7 @@ class TestImport(unittest.TestCase):
         test = 'import org.springframework.context.annotation.Bean;'
         expected = {
             'name': 'Bean',
-            'type': 'import',
+            'type': 'import'.upper(),
             'path': ['org', 'springframework', 'context', 'annotation'],
             'lineno': 1
         }

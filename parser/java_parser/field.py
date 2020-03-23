@@ -8,7 +8,7 @@ from parser.java_parser.tokens import Modifier, VariableType, CommonName
 from parser.java_parser.mixins import Stringify
 
 
-rest_before_end = re.compile(r'.*(?!;)')
+rest_before_end = re.compile(r'.*(?<!;)')
 
 
 class Field(Stringify):
@@ -36,4 +36,5 @@ class Field(Stringify):
             'type': self.type.object(),
             'modifiers': [x.object() for x in self.modifiers],
             'initialValue': self.initialValue,
+            'lineno': self.position_in_text[0],
         }

@@ -3,7 +3,7 @@ Deal with import and package keywords in Java.
 '''
 
 from pypeg2 import *
-from pypeg2 import blank, endl
+from pypeg2 import blank
 
 from parser.java_parser.tokens import CommonName
 

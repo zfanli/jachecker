@@ -272,7 +272,7 @@ class TestParameterType(unittest.TestCase):
         test = 'int[]'
         parsed = parse(test, ParameterType)
         self.assertEqual(parsed.name, 'int', 'Not matched.')
-        self.assertEqual(parsed.array_suffix, '[]', 'Should be an array.')
+        self.assertEqual(parsed.arraySuffix, '[]', 'Should be an array.')
 
     def test_case_pt3(self):
         '''Generic'''
@@ -293,7 +293,7 @@ class TestParameterType(unittest.TestCase):
                          'Generic should be `[LinkedHashMap]`.')
         self.assertEqual([x.name for x in parsed.generic[0].generic],
                          ['String', 'Object'], 'Generic should be `[String, Object]`.')
-        self.assertEqual(parsed.generic[0].generic[0].array_suffix, '[]',
+        self.assertEqual(parsed.generic[0].generic[0].arraySuffix, '[]',
                          'Should be an array.')
 
     def test_case_pt5(self):
@@ -302,10 +302,10 @@ class TestParameterType(unittest.TestCase):
         test = 'LinkedHashMap<String[], Object>[]'
         parsed = parse(test, ParameterType)
         self.assertEqual(parsed.name, 'LinkedHashMap', 'Not matched.')
-        self.assertEqual(parsed.array_suffix, '[]', 'Should be an array.')
+        self.assertEqual(parsed.arraySuffix, '[]', 'Should be an array.')
         self.assertEqual([x.name for x in parsed.generic], ['String', 'Object'],
                          'Should be `[String, Object]`.')
-        self.assertEqual(parsed.generic[0].array_suffix,
+        self.assertEqual(parsed.generic[0].arraySuffix,
                          '[]', 'Should be an array.')
 
     def test_case_pt6(self):
@@ -313,7 +313,7 @@ class TestParameterType(unittest.TestCase):
 
         test = 'String[][][]'
         parsed = parse(test, ParameterType)
-        self.assertEqual(parsed.array_suffix, '[][][]', 'Not matched.')
+        self.assertEqual(parsed.arraySuffix, '[][][]', 'Not matched.')
 
     def test_case_pt7(self):
         '''Recurision case, till 3 of the depth, enough for most case.'''
@@ -325,7 +325,7 @@ class TestParameterType(unittest.TestCase):
                          'Generic should be `[LinkedHashMap]`.')
         self.assertEqual([x.name for x in parsed.generic[0].generic], ['String', 'HashMap'],
                          'Generic should be `[String, HashMap]`.')
-        self.assertEqual(parsed.generic[0].generic[0].array_suffix, '[]',
+        self.assertEqual(parsed.generic[0].generic[0].arraySuffix, '[]',
                          'Should be an array.')
         self.assertEqual([x.name for x in parsed.generic[0].generic[1].generic], ['String', 'T'],
                          'Generic should be `[String, T]`.')
@@ -339,10 +339,10 @@ class TestParameterType(unittest.TestCase):
         expected = {
             'name': 'LinkedHashMap',
             'generic': [
-                {'name': 'String', 'generic': None, 'array_suffix': '[]'},
-                {'name': 'Object', 'generic': None, 'array_suffix': None}
+                {'name': 'String', 'generic': None, 'arraySuffix': '[]'},
+                {'name': 'Object', 'generic': None, 'arraySuffix': None}
             ],
-            'array_suffix': '[]'
+            'arraySuffix': '[]'
         }
         parsed = parse(test, ParameterType)
         self.assertEqual(str(parsed), json.dumps(expected), 'Not matched.')
@@ -356,7 +356,7 @@ class TestParameters(unittest.TestCase):
         test = 'String name'
         expected = {
             'name': 'name',
-            'type': {'name': 'String', 'generic': None, 'array_suffix': None}
+            'type': {'name': 'String', 'generic': None, 'arraySuffix': None}
         }
         parsed = parse(test, Parameter)
         self.assertEqual(str(parsed), json.dumps(expected), 'Not matched.')
@@ -367,16 +367,16 @@ class TestParameters(unittest.TestCase):
         test = 'String name, int age, Info info, String[] other'
         expected = [{
             "name": "name",
-            "type": {"name": "String", "generic": None, "array_suffix": None}
+            "type": {"name": "String", "generic": None, "arraySuffix": None}
         }, {
             "name": "age",
-            "type": {"name": "int", "generic": None, "array_suffix": None}
+            "type": {"name": "int", "generic": None, "arraySuffix": None}
         }, {
             "name": "info",
-            "type": {"name": "Info", "generic": None, "array_suffix": None}
+            "type": {"name": "Info", "generic": None, "arraySuffix": None}
         }, {
             "name": "other",
-            "type": {"name": "String", "generic": None, "array_suffix": "[]"}
+            "type": {"name": "String", "generic": None, "arraySuffix": "[]"}
         }]
         parsed = parse(test, Parameters)
         self.assertEqual(str(parsed), json.dumps(expected), 'Not matched.')

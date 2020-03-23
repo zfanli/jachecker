@@ -160,14 +160,14 @@ def generic_type_limited_recursion(num):
         grammar = (
             attr('name', CommonName),
             attr('generic', optional('<',  csl(g), '>')),
-            attr('array_suffix', optional(SymbolArray))
+            attr('arraySuffix', optional(SymbolArray))
         )
 
         def object(self):
             return {
                 'name': self.name,
                 'generic': [x.object() for x in self.generic] if len(self.generic) > 0 else None,
-                'array_suffix': self.array_suffix,
+                'arraySuffix': self.arraySuffix,
             }
 
     return GenericRecursion
@@ -180,7 +180,7 @@ class ParameterType(generic_type_limited_recursion(5)):
         {
             "name": str,
             "generic": ?[`ParameterType`],
-            "array_suffix": ?str,
+            "arraySuffix": ?str,
         }
     '''
 

@@ -53,7 +53,7 @@ class TestPackage(unittest.TestCase):
         expected = {
             'name': 'Bean',
             'type': 'package'.upper(),
-            'path': ['org', 'springframework', 'context', 'annotation'],
+            'path': 'org.springframework.context.annotation',
             'lineno': 1
         }
         parsed = parse(test, Package)

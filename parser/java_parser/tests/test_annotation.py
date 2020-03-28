@@ -13,7 +13,6 @@ from pypeg2 import *
 from parser.java_parser.annotation import *
 
 
-
 class TestAnnotationParameters(unittest.TestCase):
 
     def test_case_ap1(self):
@@ -205,6 +204,22 @@ class TestAnnotation(unittest.TestCase):
                     'lineno': 1}
         test = '@Annotation(Key={"val1", "val2"}, Other=Parameter.another)'
         parsed = parse(test, Annotation)
+        self.assertEqual(str(parsed), json.dumps(expected),
+                         'Not parsed correctly.')
+
+    def test_case_an7(self):
+        '''Annotation'''
+
+        expected = {
+            'name': 'Annotation',
+            'parameters': [
+                {'key': 'value', 'value': ['/PATH']},
+            ],
+            'lineno': 1
+        }
+        test = '@Annotation("/PATH")'
+        parsed = parse(test, Annotation)
+        print(parsed)
         self.assertEqual(str(parsed), json.dumps(expected),
                          'Not parsed correctly.')
 

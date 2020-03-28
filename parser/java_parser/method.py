@@ -3,34 +3,36 @@ Deal with class methods.
 '''
 
 from pypeg2 import *
-from pypeg2 import blank, endl
 
 from parser.java_parser.tokens import *
+from parser.java_parser.variable import ReturnType, Parameters
+from parser.java_parser.control_flow import ControlFlow
+from parser.java_parser.operation import Operation
+from parser.java_parser.annotation import Annotation
+from parser.java_parser.comment import Comment
 
 
-class Method(List):
+class Method(List, Stringify):
 
     grammar = (
-        optional(attr('head_non_access_modifier', NonAccessModifier)), blank,
-        optional(attr('access_modifier', AccessModifier)), blank,
-        optional(attr('main_non_access_modifier', NonAccessModifier)), blank,
-        optional(attr('second_non_access_modifier', NonAccessModifier)), blank,
-        attr('return_type', ReturnType), blank,
-        name(),
-        '(', optional(attr('parameters', Parameters)), ')',
-        '{', restline, '}',
+        # attr('comments', optional(Comment)),
+        attr('annotations', maybe_some(Annotation)),
+        attr('modifiers', maybe_some(Modifier)),
+        attr('returnType', ReturnType),
+        attr('name', CommonName),
+        '(', attr('parameters', optional(Parameters)), ')',
+        '{', some([ControlFlow, Operation]), '}',
     )
 
-    def json(self):
+    def object(self):
         return {
-            'name': self.name,
-            'head_non_access_modifier': self.head_non_access_modifier,
-            'access_modifier': self.access_modifier,
-            'main_non_access_modifier': self.main_non_access_modifier,
-            'second_non_access_modifier': self.second_non_access_modifier,
-            'return_type': self.return_type,
-            'parameters': self.parameters,
-            'body': self,
+            'name': self.name.object(),
+            'annotations': [x.object() for x in self.annotations],
+            'modifiers': [x.object() for x in self.modifiers],
+            'returnType': self.returnType.object(),
+            'parameters': self.parameters.object() if self.parameters else None,
+            'body': [x.object() for x in self],
+            'type': 'METHOD',
         }
 
 

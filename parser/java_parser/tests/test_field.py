@@ -26,11 +26,13 @@ class TestField(unittest.TestCase):
                 {'name': 'static', 'type': 'NON_ACCESS_MODIFIER'},
                 {'name': 'final', 'type': 'NON_ACCESS_MODIFIER'},
             ],
+            'annotations': [],
             'initialValue': '"SOME_CONSTANT"',
             'lineno': 1,
         }
         test = 'private static final String SOME_CONSTANT = "SOME_CONSTANT";'
         parsed = parse(test, Field)
+        print(parsed)
         self.assertEqual(parsed.object(), expected, 'Not matched')
 
     def test_case_f2(self):
@@ -42,6 +44,7 @@ class TestField(unittest.TestCase):
             'modifiers': [
                 {'name': 'private', 'type': 'ACCESS_MODIFIER'},
             ],
+            'annotations': [],
             'initialValue': '12345',
             'lineno': 1,
         }
@@ -65,6 +68,7 @@ class TestField(unittest.TestCase):
             'modifiers': [
                 {'name': 'protected', 'type': 'ACCESS_MODIFIER'},
             ],
+            'annotations': [],
             'initialValue': 'new HashMap<>()',
             'lineno': 1,
         }
@@ -81,6 +85,7 @@ class TestField(unittest.TestCase):
             'modifiers': [
                 {'name': 'private', 'type': 'ACCESS_MODIFIER'},
             ],
+            'annotations': [],
             'initialValue': None,
             'lineno': 1,
         }
@@ -97,6 +102,7 @@ class TestField(unittest.TestCase):
             'modifiers': [
                 {'name': 'public', 'type': 'ACCESS_MODIFIER'},
             ],
+            'annotations': [],
             'initialValue': 'false',
             'lineno': 1,
         }
@@ -111,12 +117,23 @@ class TestField(unittest.TestCase):
             'name': 'flag',
             'type': {'name': 'boolean', 'generic': None, 'arraySuffix': None},
             'modifiers': [],
+            'annotations': [],
             'initialValue': 'false',
             'lineno': 1,
         }
         test = 'boolean flag = false;'
         parsed = parse(test, Field)
         self.assertEqual(parsed.object(), expected, 'Not matched')
+
+    def test_case_f6(self):
+        '''Field, just check pass'''
+
+        test = '''@Annotation
+        @Another(Some, Values, Here)
+        boolean flag = false;'''
+        parsed = parse(test, Field)
+        print(parsed)
+        # assert False
 
 
 if __name__ == '__main__':

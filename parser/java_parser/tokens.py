@@ -9,16 +9,41 @@ from pypeg2 import *
 from parser.java_parser.mixins import Stringify, Literal
 
 
+class LogicalOperator(str, Literal):
+    '''Logical operator'''
+
+    grammar = ([
+        re.compile(r'\|\|'),
+        re.compile(r'&&'),
+        re.compile(r'\|'),
+        re.compile(r'&'),
+        re.compile(r'\^'),
+    ])
+
+
+class ComparisonOperator(str, Literal):
+    '''Comparison operator'''
+
+    grammar = ([
+        re.compile(r'<='),
+        re.compile(r'>='),
+        re.compile(r'=='),
+        re.compile(r'!='),
+        re.compile(r'<'),
+        re.compile(r'>'),
+    ])
+
+
 class CommonName(str, Literal):
     '''Matches like `AllName`'''
 
-    grammar = re.compile(r'([\w\d]+)')
+    grammar = re.compile(r'[\w\d_]+')
 
 
 class CommonNameAttribute(str, Literal):
     '''Matches like `Name.attribute`'''
 
-    grammar = re.compile(r'[\w\d]+\.[\w\d]+')
+    grammar = re.compile(r'[\w\d_]+(\.[\w\d_]+)+')
 
 
 class SymbolArray(str, Literal):
@@ -56,7 +81,7 @@ class NonAccessModifier(Keyword, Stringify):
 
     grammar = Enum(
         K('final'), K('static'), K('transient'),
-        K('synchronized'), K('volatile'),
+        K('synchronized'), K('volatile'), K('abstract')
     )
 
     def object(self):
@@ -148,75 +173,5 @@ class PrimaryType(Stringify):
         return self.value.object()
 
 
-def generic_type_limited_recursion(num):
-
-    if num > 0:
-        g = generic_type_limited_recursion(num - 1)
-    else:
-        g = word
-
-    class GenericRecursion(Stringify):
-
-        grammar = (
-            attr('name', CommonName),
-            attr('generic', optional('<',  csl(g), '>')),
-            attr('arraySuffix', optional(SymbolArray))
-        )
-
-        def object(self):
-            return {
-                'name': self.name,
-                'generic': [x.object() for x in self.generic] if len(self.generic) > 0 else None,
-                'arraySuffix': self.arraySuffix,
-            }
-
-    return GenericRecursion
-
-
-class ParameterType(generic_type_limited_recursion(5)):
-    '''Limited recursion with 5 of the depth.
-
-    Output: `json`
-        {
-            "name": str,
-            "generic": ?[`ParameterType`],
-            "arraySuffix": ?str,
-        }
-    '''
-
-
-class ReturnType(ParameterType):
-    '''Alias of parameter type'''
+if __name__ == '__main__':
     pass
-
-
-class VariableType(ParameterType):
-    '''Alias of parameter type'''
-    pass
-
-
-class Parameter(Stringify):
-    '''Output: `json`
-        {
-            "name": str,
-            "type": ParameterType,
-        }
-    '''
-
-    grammar = attr('type', ParameterType), name()
-
-    def object(self):
-        return {
-            'name': self.name,
-            'type': self.type.object(),
-        }
-
-
-class Parameters(List, Stringify):
-    '''Output: `json`
-        [Parameter]
-    '''
-    grammar = csl(Parameter)
-
-    def object(self):
-        return [x.object() for x in self]

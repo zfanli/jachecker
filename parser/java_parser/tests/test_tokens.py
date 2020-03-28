@@ -11,6 +11,65 @@ from pypeg2 import *
 
 # Test target
 from parser.java_parser.tokens import *
+from parser.java_parser.variable import *
+
+
+class TestName(unittest.TestCase):
+
+    def test_case_common1(self):
+
+        test = 'ABC_1'
+        parsed = parse(test, CommonName)
+        print(parsed)
+        self.assertEqual(parsed, test, 'Not matched.')
+
+    def test_case_cwa1(self):
+
+        test = 'name.ABC_1'
+        parsed = parse(test, CommonNameAttribute)
+        print(parsed)
+        self.assertEqual(parsed, test, 'Not matched.')
+
+    def test_case_cwa2(self):
+
+        test = 'name.ABC_1.more.last'
+        parsed = parse(test, CommonNameAttribute)
+        print(parsed)
+        self.assertEqual(parsed, test, 'Not matched.')
+
+
+class TestLogicalOperator(unittest.TestCase):
+
+    def test_case_lo1(self):
+
+        test = ['||', '|', '&&', '&', '^']
+        parsed = parse(' '.join(test), some(LogicalOperator))
+        print(parsed)
+        self.assertEqual(parsed, test, 'Not matched.')
+
+
+class TestComparisonOperator(unittest.TestCase):
+
+    def test_case_co1(self):
+
+        # test = ['==', '!=', '<', '>', '<=', '>=']
+        parsed = parse('==', ComparisonOperator)
+        print(parsed)
+        self.assertEqual(parsed.object(), '==', 'Not matched.')
+
+    def test_case_co2(self):
+
+        # test = ['==', '!=', '<', '>', '<=', '>=']
+        parsed = parse('!=', ComparisonOperator)
+        print(parsed)
+        self.assertEqual(parsed.object(), '!=', 'Not matched.')
+
+    def test_case_co3(self):
+
+        test = ['==', '!=', '<', '>', '<=', '>=']
+        parsed = parse(' '.join(test), some(ComparisonOperator))
+        print(parsed)
+        self.assertEqual(parsed, test, 'Not matched.')
 
 
 class TestAccessModifiers(unittest.TestCase):
@@ -28,7 +87,8 @@ class TestNonAccessModifiers(unittest.TestCase):
     def test_case_nam1(self):
         '''Check all keywords'''
 
-        test = ['final', 'static', 'transient', 'synchronized', 'volatile']
+        test = ['final', 'static', 'transient',
+                'synchronized', 'volatile', 'abstract']
         parsed = parse(' '.join(test), some(NonAccessModifier))
         self.assertEqual(parsed, test, 'Non-Access modifiers are not ok.')
 
@@ -353,32 +413,57 @@ class TestParameters(unittest.TestCase):
     def test_case_p1(self):
         '''Parameter only'''
 
-        test = 'String name'
         expected = {
             'name': 'name',
-            'type': {'name': 'String', 'generic': None, 'arraySuffix': None}
+            'type': {'name': 'String', 'generic': None, 'arraySuffix': None},
+            'annotation': None
         }
+        test = 'String name'
         parsed = parse(test, Parameter)
+        print(parsed)
+        self.assertEqual(str(parsed), json.dumps(expected), 'Not matched.')
+
+    def test_case_p2(self):
+        '''Parameter only'''
+
+        expected = {
+            'name': 'name',
+            'type': {'name': 'String', 'generic': None, 'arraySuffix': None},
+            'annotation': {'name': 'FieldAnnotation', 'parameters': None, 'lineno': 1}
+        }
+        test = '@FieldAnnotation String name'
+        parsed = parse(test, Parameter)
+        print(parsed)
         self.assertEqual(str(parsed), json.dumps(expected), 'Not matched.')
 
     def test_case_ps1(self):
         '''Simple case'''
 
+        expected = [
+            {
+                "name": "name",
+                "type": {"name": "String", "generic": None, "arraySuffix": None},
+                'annotation': None
+            },
+            {
+                "name": "age",
+                "type": {"name": "int", "generic": None, "arraySuffix": None},
+                'annotation': None
+            },
+            {
+                "name": "info",
+                "type": {"name": "Info", "generic": None, "arraySuffix": None},
+                'annotation': None
+            },
+            {
+                "name": "other",
+                "type": {"name": "String", "generic": None, "arraySuffix": "[]"},
+                'annotation': None
+            }
+        ]
         test = 'String name, int age, Info info, String[] other'
-        expected = [{
-            "name": "name",
-            "type": {"name": "String", "generic": None, "arraySuffix": None}
-        }, {
-            "name": "age",
-            "type": {"name": "int", "generic": None, "arraySuffix": None}
-        }, {
-            "name": "info",
-            "type": {"name": "Info", "generic": None, "arraySuffix": None}
-        }, {
-            "name": "other",
-            "type": {"name": "String", "generic": None, "arraySuffix": "[]"}
-        }]
         parsed = parse(test, Parameters)
+        print(parsed)
         self.assertEqual(str(parsed), json.dumps(expected), 'Not matched.')
 
 

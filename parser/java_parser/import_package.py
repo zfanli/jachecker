@@ -6,6 +6,7 @@ from pypeg2 import *
 from pypeg2 import blank
 
 from parser.java_parser.tokens import CommonName
+from parser.java_parser.mixins import Stringify
 
 # name allows start (*)
 name_star = re.compile(r'\*|[\w\d]+')
@@ -21,7 +22,7 @@ class PathNameMixin:
         return f"{'.'.join(self.path)}.{self.name}"
 
 
-class JsonMixin:
+class StringifyAdopter(Stringify):
     '''Json output'''
 
     def object(self):
@@ -30,15 +31,18 @@ class JsonMixin:
         return {
             'name': self.name,
             'type': self.keyword.upper(),
-            'path': self.path,
+            'path': self.path.object(),
             'lineno': self.position_in_text[0]
         }
 
 
-class Pathnames(List):
+class Pathnames(List, Stringify):
     '''Path name'''
 
     grammar = some(word, '.')
+
+    def object(self):
+        return '.'.join(self)
 
 
 def create_grammar(target_keyword, name_pattern):
@@ -53,21 +57,43 @@ def create_grammar(target_keyword, name_pattern):
     )
 
 
-class Import(str, PathNameMixin, JsonMixin):
-    '''Java import'''
+class Import(str, PathNameMixin, StringifyAdopter):
+    '''Java import
+
+    Output: `json`
+        {
+            "name": str,
+            "type": "IMPORT",
+            "path": str,
+            "lineno": number,
+        }
+    '''
 
     keyword = 'import'
     grammar = create_grammar(keyword, name_star)
 
 
 class Imports(List):
-    '''Import may always be a list'''
+    '''Import may always be a list.
+
+    Output: `json`
+        [Import]
+    '''
 
     grammar = some(Import)
 
 
-class Package(str, PathNameMixin, JsonMixin):
-    '''Java package'''
+class Package(str, PathNameMixin, StringifyAdopter):
+    '''Java package
+
+    Output: `json`
+        {
+            "name": str,
+            "type": "PACKAGE",
+            "path": str,
+            "lineno": number,
+        }
+    '''
 
     keyword = 'package'
     grammar = create_grammar(keyword, CommonName)
